@@ -5,7 +5,7 @@ import json  # for dumping json serialized results
 import zipfile  # for creating submission zip file
 import pandas as pd
 
-def create_submission(df, model, score_thresh=0.5):
+def create_submission(df, model, score_thresh=0.8):
     results = []
     for index, row in tqdm(df.iterrows()):
         img_id = row['id']
@@ -26,6 +26,9 @@ def create_submission(df, model, score_thresh=0.5):
                         results.append(pred)
     return results
 
+# base name 
+base_name = 'answer'
+
 # classes
 classes = ('belt', 'sunglasses', 'boot', 'cowboy_hat', 'jacket')
 classes_id = ('87', '1034', '131', '318', '588')
@@ -37,8 +40,6 @@ checkpoint = './working/job2_cascade_rcnn_x101_32x4d_fpn_1x_fold0/latest.pth'
 val_path = './cowboydata/valid.csv'
 # submission base
 submission_base = './submission/'
-# base name 
-base_name = 'test_answer'
 # submission name
 submission_name = base_name + '.json'
 # submission path
