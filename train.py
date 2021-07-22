@@ -44,15 +44,16 @@ Prepare the MMDetection Config
 from mmcv import Config
 
 # baseline_cfg_path = "../mmdetection/configs/cascade_rcnn/cascade_rcnn_x101_32x4d_fpn_1x_coco.py"
-baseline_cfg_path = "../mmdetection/configs/yolo/yolov3_d53_mstrain-608_273e_coco.py"
+
+baseline_cfg_path = "../mmdetection/configs/retinanet/retinanet_r50_fpn_1x_coco.py"
 cfg = Config.fromfile(baseline_cfg_path)
 
 '''
 General Training Settings
 '''
-model_name = 'yolov3_d53_mstrain-608_273e'
+model_name = 'retinanet_r50_fpn_1x'
 fold = 0
-job = 1
+job = 2
 
 # Folder to store model logs and weight files
 job_folder = f'./working/job{job}_{model_name}_fold{fold}'
@@ -91,13 +92,13 @@ cfg.total_epochs = 12
 cfg.optimizer.lr = 0.02/8
 
 ## Learning rate scheduler config used to register LrUpdater hook
-cfg.lr_config = dict(
-    policy='CosineAnnealing', # The policy of scheduler, also support CosineAnnealing, Cyclic, etc. Refer to details of supported LrUpdater from https://github.com/open-mmlab/mmcv/blob/master/mmcv/runner/hooks/lr_updater.py#L9.
-    by_epoch=False,
-    warmup='linear', # The warmup policy, also support `exp` and `constant`.
-    warmup_iters=500, # The number of iterations for warmup
-    warmup_ratio=0.001, # The ratio of the starting learning rate used for warmup
-    min_lr=1e-07)
+# cfg.lr_config = dict(
+#     policy='CosineAnnealing', # The policy of scheduler, also support CosineAnnealing, Cyclic, etc. Refer to details of supported LrUpdater from https://github.com/open-mmlab/mmcv/blob/master/mmcv/runner/hooks/lr_updater.py#L9.
+#     by_epoch=False,
+#     warmup='linear', # The warmup policy, also support `exp` and `constant`.
+#     warmup_iters=500, # The number of iterations for warmup
+#     warmup_ratio=0.001, # The ratio of the starting learning rate used for warmup
+#     min_lr=1e-07)
 
 # config to register logger hook
 cfg.log_config.interval = 40 # Interval to print the log
@@ -111,24 +112,25 @@ Dataset
 
 cfg.dataset_type = 'CocoDataset' # Dataset type, this will be used to define the dataset
 cfg.classes = ("belt","sunglasses","boot","cowboy_hat","jacket")
-cfg.data_root = '/cowboydata'
 
-cfg.data.train.img_prefix = './cowboydata/images' # Prefix of image path
+cfg.data_root = '/home/tantianlong/.code/code/cowboy/cowboydata'
+
+cfg.data.train.img_prefix = cfg.data_root + '/images' # Prefix of image path
 cfg.data.train.classes = cfg.classes
-cfg.data.train.ann_file = './cowboydata/train.json'
+cfg.data.train.ann_file = cfg.data_root + '/new_train.json'
 cfg.data.train.type='CocoDataset'
 
-cfg.data.val.img_prefix = './cowboydata/images' # Prefix of image path
+cfg.data.val.img_prefix = cfg.data_root + '/images' # Prefix of image path
 cfg.data.val.classes = cfg.classes
-cfg.data.val.ann_file = './cowboydata/train.json'
+cfg.data.val.ann_file = cfg.data_root + '/new_valid.json'
 cfg.data.val.type='CocoDataset'
 
-cfg.data.test.img_prefix = './cowboydata/images' # Prefix of image path
+cfg.data.test.img_prefix = cfg.data_root + '/images' # Prefix of image path
 cfg.data.test.classes = cfg.classes
-cfg.data.test.ann_file =  './cowboydata/train.json'
+cfg.data.test.ann_file =  cfg.data_root + '/new_valid.json'
 cfg.data.test.type='CocoDataset'
 
-cfg.data.samples_per_gpu = 8 # Batch size of a single GPU used in testing
+cfg.data.samples_per_gpu = 4 # Batch size of a single GPU used in testing
 cfg.data.workers_per_gpu = 4 # Worker to pre-fetch data for each single GPU
 
 '''
@@ -147,13 +149,12 @@ cfg.evaluation.iou_thrs = [0.5]
 About wandb
 '''
 
-cfg.log_config.hooks = [dict(type='TextLoggerHook'),
-                        dict(type='WandbLoggerHook',
-                             init_kwargs=dict(project=wnb_project_name,
-                                              name=f'exp-{model_name}-fold{fold}-job{job}',
-                                              entity=wnb_username))
-                       ]
-
+# cfg.log_config.hooks = [dict(type='TextLoggerHook'),
+#                         dict(type='WandbLoggerHook',
+#                              init_kwargs=dict(project=wnb_project_name,
+#                                               name=f'exp-{model_name}-fold{fold}-job{job}',
+#                                               entity=wnb_username))
+#                        ]
 
 '''
 Save Config File

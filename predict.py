@@ -5,7 +5,7 @@ import json  # for dumping json serialized results
 import zipfile  # for creating submission zip file
 import pandas as pd
 
-def create_submission(df, model, score_thresh=0.8):
+def create_submission(df, model, score_thresh=0.5):
     results = []
     for index, row in tqdm(df.iterrows()):
         img_id = row['id']
@@ -28,14 +28,15 @@ def create_submission(df, model, score_thresh=0.8):
 
 # base name 
 base_name = 'answer'
-
+zip_name = 'retina'
 # classes
 classes = ('belt', 'sunglasses', 'boot', 'cowboy_hat', 'jacket')
 classes_id = ('87', '1034', '131', '318', '588')
 # Choose to use a config and checkpoint
-config = './my_config.py'
+
+config = './working/job1_retinanet_r50_fpn_1x_fold0/my_config.py'
 # Setup a checkpoint file to load
-checkpoint = './working/job2_cascade_rcnn_x101_32x4d_fpn_1x_fold0/latest.pth'
+checkpoint = './working/job1_retinanet_r50_fpn_1x_fold0/latest.pth'
 # val path
 val_path = './cowboydata/valid.csv'
 # submission base
@@ -45,7 +46,7 @@ submission_name = base_name + '.json'
 # submission path
 submission_path = submission_base + submission_name
 # zipfile name
-zipfile_name = submission_base + 'zip_'+ base_name +'.zip'
+zipfile_name = submission_base + 'zip_'+ zip_name +'.zip'
 
 model = init_detector(config, checkpoint, device='cuda:4')
 submission_df = pd.read_csv(val_path)
