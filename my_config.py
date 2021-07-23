@@ -180,7 +180,7 @@ model = dict(
             nms=dict(type='nms', iou_threshold=0.5),
             max_per_img=100)))
 dataset_type = 'CocoDataset'
-data_root = '/cowboydata'
+data_root = '/home/tantianlong/.code/code/cowboy/cowboydata'
 img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
 train_pipeline = [
@@ -218,11 +218,12 @@ test_pipeline = [
 ]
 data = dict(
     samples_per_gpu=2,
-    workers_per_gpu=2,
+    workers_per_gpu=4,
     train=dict(
         type='CocoDataset',
-        ann_file='./cowboydata/train.json',
-        img_prefix='./cowboydata/images',
+        ann_file=
+        '/home/tantianlong/.code/code/cowboy/cowboydata/new_train.json',
+        img_prefix='/home/tantianlong/.code/code/cowboy/cowboydata/images',
         pipeline=[
             dict(type='LoadImageFromFile'),
             dict(type='LoadAnnotations', with_bbox=True),
@@ -240,8 +241,9 @@ data = dict(
         classes=('belt', 'sunglasses', 'boot', 'cowboy_hat', 'jacket')),
     val=dict(
         type='CocoDataset',
-        ann_file='./cowboydata/train.json',
-        img_prefix='./cowboydata/images',
+        ann_file=
+        '/home/tantianlong/.code/code/cowboy/cowboydata/new_valid.json',
+        img_prefix='/home/tantianlong/.code/code/cowboy/cowboydata/images',
         pipeline=[
             dict(type='LoadImageFromFile'),
             dict(
@@ -264,8 +266,9 @@ data = dict(
         classes=('belt', 'sunglasses', 'boot', 'cowboy_hat', 'jacket')),
     test=dict(
         type='CocoDataset',
-        ann_file='./cowboydata/train.json',
-        img_prefix='./cowboydata/images',
+        ann_file=
+        '/home/tantianlong/.code/code/cowboy/cowboydata/new_valid.json',
+        img_prefix='/home/tantianlong/.code/code/cowboy/cowboydata/images',
         pipeline=[
             dict(type='LoadImageFromFile'),
             dict(
@@ -287,25 +290,24 @@ data = dict(
         ],
         classes=('belt', 'sunglasses', 'boot', 'cowboy_hat', 'jacket')))
 evaluation = dict(interval=1, metric='bbox', iou_thrs=[0.5])
-optimizer = dict(type='SGD', lr=0.005, momentum=0.9, weight_decay=0.0001)
+optimizer = dict(type='SGD', lr=0.0025, momentum=0.9, weight_decay=0.0001)
 optimizer_config = dict(grad_clip=None)
 lr_config = dict(
-    policy='CosineAnnealing',
-    by_epoch=False,
+    policy='step',
     warmup='linear',
     warmup_iters=500,
     warmup_ratio=0.001,
-    min_lr=1e-07)
+    step=[8, 11])
 runner = dict(type='EpochBasedRunner', max_epochs=12)
 checkpoint_config = dict(interval=1)
-log_config = dict(interval=20, hooks=[dict(type='TextLoggerHook')])
+log_config = dict(interval=40, hooks=[dict(type='TextLoggerHook')])
 custom_hooks = [dict(type='NumClassCheckHook')]
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
 load_from = None
 resume_from = None
 workflow = [('train', 1)]
-work_dir = './working/job2_cascade_rcnn_x101_32x4d_fpn_1x_fold0'
+work_dir = './working/job3_retinanet_r50_fpn_1x_fold0'
 seed = 111
 total_epochs = 12
 classes = ('belt', 'sunglasses', 'boot', 'cowboy_hat', 'jacket')

@@ -1,1 +1,3 @@
 CUDA_VISIBLE_DEVICES=4,5 ../mmdetection/tools/dist_train.sh my_config.py 2
+
+python ../mmdetection/tools/test.py my_config.py working/job3_retinanet_r50_fpn_1x_fold0/latest.pth --eval mAP

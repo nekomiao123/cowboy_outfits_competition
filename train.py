@@ -43,9 +43,9 @@ Prepare the MMDetection Config
 '''
 from mmcv import Config
 
-# baseline_cfg_path = "../mmdetection/configs/cascade_rcnn/cascade_rcnn_x101_32x4d_fpn_1x_coco.py"
+baseline_cfg_path = "../mmdetection/configs/cascade_rcnn/cascade_rcnn_x101_32x4d_fpn_1x_coco.py"
+# baseline_cfg_path = "../mmdetection/configs/retinanet/retinanet_r50_fpn_1x_coco.py"
 
-baseline_cfg_path = "../mmdetection/configs/retinanet/retinanet_r50_fpn_1x_coco.py"
 cfg = Config.fromfile(baseline_cfg_path)
 
 '''
@@ -53,7 +53,7 @@ General Training Settings
 '''
 model_name = 'retinanet_r50_fpn_1x'
 fold = 0
-job = 2
+job = 3
 
 # Folder to store model logs and weight files
 job_folder = f'./working/job{job}_{model_name}_fold{fold}'
@@ -72,10 +72,10 @@ if not os.path.exists(job_folder):
 print("Job folder:", job_folder)
 
 # Set the number of classes
-# for head in cfg.model.roi_head.bbox_head:
-#     head.num_classes = 5
+for head in cfg.model.roi_head.bbox_head:
+    head.num_classes = 5
 # cfg.model.roi_head.bbox_head.num_classes = 5
-cfg.model.bbox_head.num_classes = 5
+# cfg.model.bbox_head.num_classes = 5
 
 cfg.gpu_ids = [4]
 
@@ -130,7 +130,7 @@ cfg.data.test.classes = cfg.classes
 cfg.data.test.ann_file =  cfg.data_root + '/new_valid.json'
 cfg.data.test.type='CocoDataset'
 
-cfg.data.samples_per_gpu = 4 # Batch size of a single GPU used in testing
+cfg.data.samples_per_gpu = 2 # Batch size of a single GPU used in testing
 cfg.data.workers_per_gpu = 4 # Worker to pre-fetch data for each single GPU
 
 '''

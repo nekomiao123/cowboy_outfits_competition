@@ -19,24 +19,26 @@ def create_submission(df, model, score_thresh=0.5):
                 for j in result[i]:
                     j = np.array(j).tolist()
                     if j[-1] >= score_thresh:
+                        # 这里注意原来是xmin, ymin, xmax, ymax.
+                        # coco 需要的数据格式是xmin, ymin, w, h.
                         pred = {'image_id': img_id,
                                 'category_id': int(classes_id[i]),
-                                'bbox': [j[0], j[1], j[2], j[3]],
+                                'bbox': [j[0], j[1], j[2]-j[0], j[3]-j[1]],
                                 'score': j[-1]}
                         results.append(pred)
     return results
 
 # base name 
 base_name = 'answer'
-zip_name = 'retina'
+zip_name = 'cascade'
 # classes
 classes = ('belt', 'sunglasses', 'boot', 'cowboy_hat', 'jacket')
 classes_id = ('87', '1034', '131', '318', '588')
 # Choose to use a config and checkpoint
 
-config = './working/job1_retinanet_r50_fpn_1x_fold0/my_config.py'
+config = './my_config.py'
 # Setup a checkpoint file to load
-checkpoint = './working/job1_retinanet_r50_fpn_1x_fold0/latest.pth'
+checkpoint = './working/job3_retinanet_r50_fpn_1x_fold0/epoch_9.pth'
 # val path
 val_path = './cowboydata/valid.csv'
 # submission base
