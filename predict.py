@@ -30,15 +30,14 @@ def create_submission(df, model, score_thresh=0.5):
 
 # base name 
 base_name = 'answer'
-zip_name = 'cascade'
+zip_name = 'cascade_e9'
 # classes
 classes = ('belt', 'sunglasses', 'boot', 'cowboy_hat', 'jacket')
 classes_id = ('87', '1034', '131', '318', '588')
 # Choose to use a config and checkpoint
-
-config = './my_config.py'
+config = './working/job4_cascade_rcnn_x101_32x4d_fpn_1x_fold0/my_config.py'
 # Setup a checkpoint file to load
-checkpoint = './working/job3_retinanet_r50_fpn_1x_fold0/epoch_9.pth'
+checkpoint = './working/job4_cascade_rcnn_x101_32x4d_fpn_1x_fold0/epoch_9.pth'
 # val path
 val_path = './cowboydata/valid.csv'
 # submission base
@@ -54,8 +53,12 @@ model = init_detector(config, checkpoint, device='cuda:4')
 submission_df = pd.read_csv(val_path)
 submission = create_submission(submission_df, model)
 
+print(config)
+print(checkpoint)
 with open(submission_path, 'w') as f:
     json.dump(submission, f)
 zf = zipfile.ZipFile(zipfile_name, 'w')
 zf.write(submission_path, submission_name)
 zf.close()
+
+
