@@ -51,9 +51,9 @@ cfg = Config.fromfile(baseline_cfg_path)
 '''
 General Training Settings
 '''
-model_name = 'retinanet_r50_fpn_1x'
+model_name = 'cascade_rcnn_x101_32x4d_fpn_1x'
 fold = 0
-job = 3
+job = 4
 
 # Folder to store model logs and weight files
 job_folder = f'./working/job{job}_{model_name}_fold{fold}'
@@ -77,28 +77,29 @@ for head in cfg.model.roi_head.bbox_head:
 # cfg.model.roi_head.bbox_head.num_classes = 5
 # cfg.model.bbox_head.num_classes = 5
 
-cfg.gpu_ids = [4]
+# cfg.gpu_ids = [5]
+cfg.fp16 = dict(loss_scale='dynamic')
 
 # Setting pretrained model in the init_cfg which is required 
 # for transfer learning as per the latest MMdetection update
-# cfg.model.backbone.init_cfg=dict(type='Pretrained', checkpoint='torchvision://resnet50')
-# cfg.model.backbone.init_cfg=dict(type='Pretrained', checkpoint='open-mmlab://resnext101_32x4d')
-# cfg.model.pop('pretrained', None)
+cfg.model.backbone.init_cfg=dict(type='Pretrained', checkpoint='torchvision://resnet50')
+cfg.model.backbone.init_cfg=dict(type='Pretrained', checkpoint='open-mmlab://resnext101_32x4d')
+cfg.model.pop('pretrained', None)
 
-cfg.runner.max_epochs = 12 # Epochs for the runner that runs the workflow 
-cfg.total_epochs = 12
+cfg.runner.max_epochs = 20 # Epochs for the runner that runs the workflow 
+cfg.total_epochs = 20
 
 # Learning rate of optimizers. The LR is divided by 8 since the config file is originally for 8 GPUs
-cfg.optimizer.lr = 0.02/8
+cfg.optimizer.lr = 0.02/4
 
 ## Learning rate scheduler config used to register LrUpdater hook
-# cfg.lr_config = dict(
-#     policy='CosineAnnealing', # The policy of scheduler, also support CosineAnnealing, Cyclic, etc. Refer to details of supported LrUpdater from https://github.com/open-mmlab/mmcv/blob/master/mmcv/runner/hooks/lr_updater.py#L9.
-#     by_epoch=False,
-#     warmup='linear', # The warmup policy, also support `exp` and `constant`.
-#     warmup_iters=500, # The number of iterations for warmup
-#     warmup_ratio=0.001, # The ratio of the starting learning rate used for warmup
-#     min_lr=1e-07)
+cfg.lr_config = dict(
+    policy='CosineAnnealing', # The policy of scheduler, also support CosineAnnealing, Cyclic, etc. Refer to details of supported LrUpdater from https://github.com/open-mmlab/mmcv/blob/master/mmcv/runner/hooks/lr_updater.py#L9.
+    by_epoch=False,
+    warmup='linear', # The warmup policy, also support `exp` and `constant`.
+    warmup_iters=500, # The number of iterations for warmup
+    warmup_ratio=0.001, # The ratio of the starting learning rate used for warmup
+    min_lr=1e-07)
 
 # config to register logger hook
 cfg.log_config.interval = 40 # Interval to print the log
@@ -130,7 +131,7 @@ cfg.data.test.classes = cfg.classes
 cfg.data.test.ann_file =  cfg.data_root + '/new_valid.json'
 cfg.data.test.type='CocoDataset'
 
-cfg.data.samples_per_gpu = 2 # Batch size of a single GPU used in testing
+cfg.data.samples_per_gpu = 4 # Batch size of a single GPU used in testing
 cfg.data.workers_per_gpu = 4 # Worker to pre-fetch data for each single GPU
 
 '''
@@ -146,15 +147,75 @@ cfg.evaluation.interval = 1
 cfg.evaluation.iou_thrs = [0.5]
 
 '''
+Prepare the Pre-processing & Augmentation Pipelines
+'''
+
+# albu_train_transforms = [
+#     dict(type='ShiftScaleRotate', shift_limit=0.0625,
+#          scale_limit=0.15, rotate_limit=15, p=0.4),
+#     dict(type='RandomBrightnessContrast', brightness_limit=0.2,
+#          contrast_limit=0.2, p=0.5),
+#     dict(type='IAAAffine', shear=(-10.0, 10.0), p=0.4),
+# #     dict(type='MixUp', p=0.2, lambd=0.5),
+#     dict(type="Blur", p=1.0, blur_limit=7),
+#     dict(type='CLAHE', p=0.5),
+#     dict(type='Equalize', mode='cv', p=0.4),
+#     dict(
+#         type="OneOf",
+#         transforms=[
+#             dict(type="GaussianBlur", p=1.0, blur_limit=7),
+#             dict(type="MedianBlur", p=1.0, blur_limit=7),
+#         ],
+#         p=0.4,
+#     ),
+
+# #     dict(type='MixUp', p=0.2, lambd=0.5),
+# #     dict(type='RandomRotate90', p=0.5),
+# #     dict(type='CLAHE', p=0.5),
+# #     dict(type='InvertImg', p=0.5),
+# #     dict(type='Equalize', mode='cv', p=0.4),
+# #     dict(type='MedianBlur', blur_limit=3, p=0.1)
+#     ]
+
+
+# cfg.train_pipeline = [
+#     dict(type='LoadImageFromFile'),
+#     dict(type='LoadAnnotations', with_bbox=True, with_mask=True),
+#     dict(type='Resize', img_scale=(1333, 800), keep_ratio=True),
+#     dict(type='RandomFlip', flip_ratio=0.5),
+#     dict(
+#         type='Albu',
+#         transforms=albu_train_transforms,
+#         bbox_params=dict(
+#         type='BboxParams',
+#         format='pascal_voc',
+#         label_fields=['gt_labels'],
+#         min_visibility=0.0,
+#         filter_lost_elements=True),
+#         keymap=dict(img='image', gt_bboxes='bboxes'),
+#         update_pad_shape=False,
+#         skip_img_without_anno=True),
+#     dict(
+#         type='Normalize',
+#         mean=[123.675, 116.28, 103.53],
+#         std=[58.395, 57.12, 57.375],
+#         to_rgb=True),
+#     dict(type='Pad', size_divisor=32),
+#     dict(type='DefaultFormatBundle'),
+#     dict(type='Collect', keys=['img', 'gt_bboxes', 'gt_labels', 'gt_masks'])
+# ]
+
+
+'''
 About wandb
 '''
 
-# cfg.log_config.hooks = [dict(type='TextLoggerHook'),
-#                         dict(type='WandbLoggerHook',
-#                              init_kwargs=dict(project=wnb_project_name,
-#                                               name=f'exp-{model_name}-fold{fold}-job{job}',
-#                                               entity=wnb_username))
-#                        ]
+cfg.log_config.hooks = [dict(type='TextLoggerHook'),
+                        dict(type='WandbLoggerHook',
+                             init_kwargs=dict(project=wnb_project_name,
+                                              name=f'exp-{model_name}-fold{fold}-job{job}',
+                                              entity=wnb_username))
+                       ]
 
 '''
 Save Config File
@@ -171,4 +232,4 @@ model = build_detector(cfg.model,
                        test_cfg=cfg.get('test_cfg'))
 model.init_weights()
 datasets = [build_dataset(cfg.data.train)]
-train_detector(model, datasets[0], cfg, distributed=False, validate=True)
+# train_detector(model, datasets[0], cfg, distributed=False, validate=True)

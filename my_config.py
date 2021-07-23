@@ -293,21 +293,34 @@ evaluation = dict(interval=1, metric='bbox', iou_thrs=[0.5])
 optimizer = dict(type='SGD', lr=0.0025, momentum=0.9, weight_decay=0.0001)
 optimizer_config = dict(grad_clip=None)
 lr_config = dict(
-    policy='step',
+    policy='CosineAnnealing',
+    by_epoch=False,
     warmup='linear',
     warmup_iters=500,
     warmup_ratio=0.001,
-    step=[8, 11])
+    min_lr=1e-07)
 runner = dict(type='EpochBasedRunner', max_epochs=12)
 checkpoint_config = dict(interval=1)
-log_config = dict(interval=40, hooks=[dict(type='TextLoggerHook')])
+log_config = dict(
+    interval=40,
+    hooks=[
+        dict(type='TextLoggerHook'),
+        dict(
+            type='WandbLoggerHook',
+            init_kwargs=dict(
+                project='cow-boy-detection',
+                name='exp-cascade_rcnn_x101_32x4d_fpn_1x-fold0-job3',
+                entity='nekokiku'))
+    ])
 custom_hooks = [dict(type='NumClassCheckHook')]
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
 load_from = None
 resume_from = None
 workflow = [('train', 1)]
-work_dir = './working/job3_retinanet_r50_fpn_1x_fold0'
+work_dir = './working/job3_cascade_rcnn_x101_32x4d_fpn_1x_fold0'
 seed = 111
 total_epochs = 12
 classes = ('belt', 'sunglasses', 'boot', 'cowboy_hat', 'jacket')
+# fp16 settings
+fp16 = dict(loss_scale='dynamic')
