@@ -3,7 +3,7 @@ import copy
 import json
 from pycocotools.coco import COCO
 
-def create_subset(c, cats, test_n=100):
+def create_subset(c, cats, test_n=180):
     new_coco = {}
     new_coco['info'] = {"description": "CowboySuit",
                         "url": "http://github.com/dmlc/gluon-cv",
@@ -71,4 +71,5 @@ with open('cowboydata/new_train.json', 'w') as f:
 
 with open('cowboydata/new_valid.json', 'w') as f:
     json.dump(nc_test, f)
+print("Down!!!!!!!!!!!!!!!!!")
 

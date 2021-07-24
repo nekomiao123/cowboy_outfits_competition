@@ -144,7 +144,7 @@ cfg.evaluation.metric = 'bbox' # Metrics used during evaluation
 cfg.evaluation.interval = 1
 
 # Set the iou threshold of the mAP calculation during evaluation
-cfg.evaluation.iou_thrs = [0.5]
+# cfg.evaluation.iou_thrs = [0.75]
 
 cfg.evaluation.save_best='bbox_mAP'
 '''

@@ -30,14 +30,14 @@ def create_submission(df, model, score_thresh=0.5):
 
 # base name 
 base_name = 'answer'
-zip_name = 'cascade_job6'
+zip_name = 'cascade_job7'
 # classes
 classes = ('belt', 'sunglasses', 'boot', 'cowboy_hat', 'jacket')
 classes_id = ('87', '1034', '131', '318', '588')
 # Choose to use a config and checkpoint
-config = './working/job6_cascade_rcnn_x101_32x4d_fpn_1x_fold0/my_config.py'
+config = './working/job7_cascade_rcnn_x101_32x4d_fpn_1x_fold0/my_config.py'
 # Setup a checkpoint file to load
-checkpoint = './working/job6_cascade_rcnn_x101_32x4d_fpn_1x_fold0/latest.pth'
+checkpoint = './working/job7_cascade_rcnn_x101_32x4d_fpn_1x_fold0/epoch_6.pth'
 # val path
 val_path = './cowboydata/valid.csv'
 # submission base
@@ -60,5 +60,3 @@ with open(submission_path, 'w') as f:
 zf = zipfile.ZipFile(zipfile_name, 'w')
 zf.write(submission_path, submission_name)
 zf.close()
-
-
