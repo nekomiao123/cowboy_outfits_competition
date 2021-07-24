@@ -53,7 +53,7 @@ General Training Settings
 '''
 model_name = 'cascade_rcnn_x101_32x4d_fpn_1x'
 fold = 0
-job = 5
+job = 7
 
 # Folder to store model logs and weight files
 job_folder = f'./working/job{job}_{model_name}_fold{fold}'
