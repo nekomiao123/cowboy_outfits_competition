@@ -60,9 +60,7 @@ def create_subset(c, cats, test_n=180):
     print('new test split, images:', len(new_coco_test["images"]), 'annos:', len(new_coco_test["annotations"]))
     return new_coco, new_coco_test
 
-
 coco = COCO('cowboydata/train.json')
-print('begin split!!!!!!!!!!!!!!!!!!!!!!!!!!')
 
 nc, nc_test = create_subset(coco, ['belt', 'sunglasses', 'boot', 'cowboy_hat', 'jacket', ])
 
@@ -71,5 +69,4 @@ with open('cowboydata/new_train.json', 'w') as f:
 
 with open('cowboydata/new_valid.json', 'w') as f:
     json.dump(nc_test, f)
-print("Down!!!!!!!!!!!!!!!!!")
 
