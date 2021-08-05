@@ -5,7 +5,7 @@ import json  # for dumping json serialized results
 import zipfile  # for creating submission zip file
 import pandas as pd
 
-def create_submission(df, model, score_thresh=0.5):
+def create_submission(df, model, score_thresh=0.1):
     results = []
     for index, row in tqdm(df.iterrows()):
         img_id = row['id']
@@ -30,14 +30,14 @@ def create_submission(df, model, score_thresh=0.5):
 
 # base name 
 base_name = 'answer'
-zip_name = 'cascade_job7_epoch4'
+zip_name = 'cascade_job1_epoch12'
 # classes
 classes = ('belt', 'sunglasses', 'boot', 'cowboy_hat', 'jacket')
 classes_id = ('87', '1034', '131', '318', '588')
 # Choose to use a config and checkpoint
-config = './working/job7_cascade_rcnn_x101_32x4d_fpn_1x_fold0/my_config.py'
+config = './working/job1_cascade_rcnn_r50_fpn_1x/job1_cascade_rcnn_r50_fpn_1x_coco.py'
 # Setup a checkpoint file to load
-checkpoint = './working/job7_cascade_rcnn_x101_32x4d_fpn_1x_fold0/epoch_4.pth'
+checkpoint = './working/job1_cascade_rcnn_r50_fpn_1x/epoch_12.pth'
 # val path
 val_path = './cowboydata/valid.csv'
 # submission base
@@ -49,7 +49,7 @@ submission_path = submission_base + submission_name
 # zipfile name
 zipfile_name = submission_base + 'zip_'+ zip_name +'.zip'
 
-model = init_detector(config, checkpoint, device='cuda:5')
+model = init_detector(config, checkpoint, device='cuda:7')
 submission_df = pd.read_csv(val_path)
 submission = create_submission(submission_df, model)
 
