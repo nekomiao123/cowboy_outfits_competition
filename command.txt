@@ -1,3 +1,4 @@
-CUDA_VISIBLE_DEVICES=4,5 ../mmdetection/tools/dist_train.sh ./working/job7_cascade_rcnn_x101_32x4d_fpn_1x_fold0/my_config.py 2
+CUDA_VISIBLE_DEVICES=6,7 ../mmdetection/tools/dist_train.sh ./working/job1_cascade_rcnn_r50_fpn_1x/job1_cascade_rcnn_r50_fpn_1x_coco.py 2
 
 python ../mmdetection/tools/test.py my_config.py working/job3_retinanet_r50_fpn_1x_fold0/latest.pth --eval bbox
+

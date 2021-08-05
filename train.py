@@ -1,62 +1,44 @@
-import sys
 import os
-# Check Pytorch installation
-import torch, torchvision
-print(torch.__version__, torch.cuda.is_available())
-
-# Check mmcv installation
-from mmcv.ops import get_compiling_cuda_version, get_compiler_version
-print(get_compiling_cuda_version())
-print(get_compiler_version())
-
-# Check MMDetection installation
-from mmdet.apis import set_random_seed
-
-# Imports
-import mmdet
-from mmdet.apis import set_random_seed
-from mmdet.datasets import build_dataset
-from mmdet.models import build_detector
-from mmdet.apis import train_detector
-
+import sys
 import random
 import numpy as np
 from pathlib import Path
 
-global_seed = 111
+import torch, torchvision
 
-def set_seed(seed=global_seed):
-    """Sets the random seeds."""
-    set_random_seed(seed, deterministic=False)
-    random.seed(seed)
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed(seed)
-    torch.backends.cudnn.deterministic = True
-    torch.backends.cudnn.benchmark = False
-    os.environ['PYTHONHASHSEED'] = str(seed)
+import mmdet
+from mmcv import Config
+from mmdet.apis import set_random_seed
+from mmdet.datasets import build_dataset
+from mmdet.models import build_detector
+from mmdet.apis import train_detector
+from mmcv.ops import get_compiling_cuda_version, get_compiler_version
 
-set_seed()
+from utils import set_seed
+
+'''
+Set global seed
+'''
+global_seed = 1234
+set_seed(global_seed)
 
 '''
 Prepare the MMDetection Config
 '''
-from mmcv import Config
-
-baseline_cfg_path = "../mmdetection/configs/cascade_rcnn/cascade_rcnn_x101_32x4d_fpn_1x_coco.py"
+# baseline_cfg_path = "../mmdetection/configs/cascade_rcnn/cascade_rcnn_x101_32x4d_fpn_1x_coco.py"
 # baseline_cfg_path = "../mmdetection/configs/retinanet/retinanet_r50_fpn_1x_coco.py"
 
+baseline_cfg_path = "../mmdetection/configs/cascade_rcnn/cascade_rcnn_r50_fpn_1x_coco.py"
 cfg = Config.fromfile(baseline_cfg_path)
 
 '''
 General Training Settings
 '''
-model_name = 'cascade_rcnn_x101_32x4d_fpn_1x'
-fold = 0
-job = 7
+model_name = 'cascade_rcnn_r50_fpn_1x'
+job = 1
 
 # Folder to store model logs and weight files
-job_folder = f'./working/job{job}_{model_name}_fold{fold}'
+job_folder = f'./working/job{job}_{model_name}'
 cfg.work_dir = job_folder
 
 # Change the wnd username and project name below
@@ -65,6 +47,8 @@ wnb_project_name = 'cow-boy-detection'
 
 # Set seed thus the results are more reproducible
 cfg.seed = global_seed
+# You should change this if you use different model
+cfg.load_from = 'https://download.openmmlab.com/mmdetection/v2.0/cascade_rcnn/cascade_rcnn_r50_fpn_1x_coco/cascade_rcnn_r50_fpn_1x_coco_20200316-3dc56deb.pth'
 
 if not os.path.exists(job_folder):
     os.makedirs(job_folder)
@@ -77,14 +61,14 @@ for head in cfg.model.roi_head.bbox_head:
 # cfg.model.roi_head.bbox_head.num_classes = 5
 # cfg.model.bbox_head.num_classes = 5
 
-# cfg.gpu_ids = [5]
+# cfg.gpu_ids = [6]
 cfg.fp16 = dict(loss_scale='dynamic')
 
 # Setting pretrained model in the init_cfg which is required 
 # for transfer learning as per the latest MMdetection update
-cfg.model.backbone.init_cfg=dict(type='Pretrained', checkpoint='torchvision://resnet50')
-cfg.model.backbone.init_cfg=dict(type='Pretrained', checkpoint='open-mmlab://resnext101_32x4d')
-cfg.model.pop('pretrained', None)
+# cfg.model.backbone.init_cfg=dict(type='Pretrained', checkpoint='torchvision://resnet50')
+# cfg.model.backbone.init_cfg=dict(type='Pretrained', checkpoint='open-mmlab://resnext101_32x4d')
+# cfg.model.pop('pretrained', None)
 
 cfg.runner.max_epochs = 12 # Epochs for the runner that runs the workflow 
 cfg.total_epochs = 12
@@ -114,7 +98,7 @@ Dataset
 cfg.dataset_type = 'CocoDataset' # Dataset type, this will be used to define the dataset
 cfg.classes = ("belt","sunglasses","boot","cowboy_hat","jacket")
 
-cfg.data_root = '/home/tantianlong/.code/code/cowboy/cowboydata'
+cfg.data_root = '/home/listu/code/learn/cowboy/cowboydaya'
 
 cfg.data.train.img_prefix = cfg.data_root + '/images' # Prefix of image path
 cfg.data.train.classes = cfg.classes
@@ -131,7 +115,7 @@ cfg.data.test.classes = cfg.classes
 cfg.data.test.ann_file =  cfg.data_root + '/new_valid.json'
 cfg.data.test.type='CocoDataset'
 
-cfg.data.samples_per_gpu = 4 # Batch size of a single GPU used in testing
+cfg.data.samples_per_gpu = 8 # Batch size of a single GPU used in testing
 cfg.data.workers_per_gpu = 4 # Worker to pre-fetch data for each single GPU
 
 '''
@@ -142,9 +126,6 @@ cfg.evaluation.metric = 'bbox' # Metrics used during evaluation
 
 # Set the epoch intervel to perform evaluation
 cfg.evaluation.interval = 1
-
-# Set the iou threshold of the mAP calculation during evaluation
-# cfg.evaluation.iou_thrs = [0.75]
 
 cfg.evaluation.save_best='bbox_mAP'
 '''
@@ -206,7 +187,6 @@ cfg.train_pipeline = [
     dict(type='Collect', keys=['img', 'gt_bboxes', 'gt_labels'])
 ]
 
-
 '''
 About wandb
 '''
@@ -214,15 +194,19 @@ About wandb
 cfg.log_config.hooks = [dict(type='TextLoggerHook'),
                         dict(type='WandbLoggerHook',
                              init_kwargs=dict(project=wnb_project_name,
-                                              name=f'exp-{model_name}-fold{fold}-job{job}',
+                                              name=f'exp-{model_name}-job{job}',
                                               entity=wnb_username))
                        ]
 
 '''
 Save Config File
 '''
+cfg_path = f'{job_folder}/job{job}_{Path(baseline_cfg_path).name}'
+print(cfg_path)
 
-cfg.dump(F'{cfg.work_dir}/my_config.py')
+# Save config file for inference later
+cfg.dump(cfg_path)
+# print(f'Config:\n{cfg.pretty_text}')
 
 '''
 Build Dataset and Start Training
